@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 
 {
-    'name': 'Buckaroo Payment Acquirer',
+    'name': 'VoguePay Payment Acquirer',
     'category': 'Hidden',
-    'summary': 'Payment Acquirer: Buckaroo Implementation',
+    'summary': 'Payment Acquirer: VoguePay Implementation',
     'version': '1.0',
-    'description': """Buckaroo Payment Acquirer""",
-    'author': 'OpenERP SA',
+    'description': """VoguePay Payment Acquirer""",
+    'author': 'Silicon Streets',
     'depends': ['payment'],
     'data': [
-        'views/buckaroo.xml',
+        'views/voguepay.xml',
         'views/payment_acquirer.xml',
-        'data/buckaroo.xml',
+        'data/voguepay.xml',
     ],
     'installable': True,
 }

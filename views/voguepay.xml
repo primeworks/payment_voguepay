@@ -2,7 +2,7 @@
 <openerp>
     <data noupdate="1">
 
-        <template id="buckaroo_acquirer_button">
+        <template id="voguepay_acquirer_button">
             <form t-if="acquirer.brq_websitekey" t-att-action="tx_url" method="post" target="_self">
                 <input type="hidden" name="v_merchant_id" t-att-value="tx_values['Brq_websitekey']"/>
                 <input type="hidden" name="total" t-att-value="tx_values['Brq_amount'] or '0.0'"/>
@@ -25,7 +25,7 @@
                 <!-- submit -->
                 <button type="submit" width="100px"
                     t-att-class="submit_class">
-                    <img t-if="not submit_txt" src="/payment_buckaroo/static/src/img/buckaroo_icon.png"/>
+                    <img t-if="not submit_txt" src="/payment_voguepay/static/src/img/voguepay_icon.png"/>
                     <span t-if="submit_txt"><t t-esc="submit_txt"/> <span class="fa fa-long-arrow-right"/></span>
                 </button>
             </form>

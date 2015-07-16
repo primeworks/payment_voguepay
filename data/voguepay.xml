@@ -2,11 +2,11 @@
 <openerp>
     <data noupdate="1">
 
-        <record id="payment_acquirer_buckaroo" model="payment.acquirer">
+        <record id="payment_acquirer_voguepay" model="payment.acquirer">
             <field name="name">VoguePay</field>
-            <field name="provider">buckaroo</field>
+            <field name="provider">voguepay</field>
             <field name="company_id" ref="base.main_company"/>
-            <field name="view_template_id" ref="buckaroo_acquirer_button"/>
+            <field name="view_template_id" ref="voguepay_acquirer_button"/>
             <field name="environment">test</field>
             <field name="pre_msg"><![CDATA[
 <p>You will be redirected to the VoguePay website after clicking on the payment button.</p>]]></field>

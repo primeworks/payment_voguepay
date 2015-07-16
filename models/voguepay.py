@@ -7,51 +7,51 @@ import json
 from time import gmtime, strftime
 
 from openerp.addons.payment.models.payment_acquirer import ValidationError
-from openerp.addons.payment_buckaroo.controllers.main import BuckarooController
+from openerp.addons.payment_voguepay.controllers.main import VoguePayController
 from openerp.osv import osv, fields
 from openerp.tools.float_utils import float_compare
 
 _logger = logging.getLogger(__name__)
 
 
-class AcquirerBuckaroo(osv.Model):
+class AcquirerVoguePay(osv.Model):
     _inherit = 'payment.acquirer'
 
-    def _get_buckaroo_urls(self, cr, uid, environment, context=None):
-        """ Buckaroo URLs
+    def _get_voguepay_urls(self, cr, uid, environment, context=None):
+        """ VoguePay URLs
         """
         if environment == 'prod':
             return {
-                'buckaroo_form_url': 'https://voguepay.com/pay/',
+                'voguepay_form_url': 'https://voguepay.com/pay/',
             }
         else:
             return {
-                'buckaroo_form_url': 'https://voguepay.com/pay/',
+                'voguepay_form_url': 'https://voguepay.com/pay/',
             }
 
     def _get_providers(self, cr, uid, context=None):
-        providers = super(AcquirerBuckaroo, self)._get_providers(cr, uid, context=context)
-        providers.append(['buckaroo', 'Buckaroo'])
+        providers = super(AcquirerVoguePay, self)._get_providers(cr, uid, context=context)
+        providers.append(['voguepay', 'VoguePay'])
         return providers
 
     _columns = {
-        'brq_websitekey': fields.char('Merchant ID', required_if_provider='buckaroo'),
-        'brq_secretkey': fields.char('API Key', required_if_provider='buckaroo'),
+        'brq_websitekey': fields.char('Merchant ID', required_if_provider='voguepay'),
+        'brq_secretkey': fields.char('API Key', required_if_provider='voguepay'),
     }
 
-    def _buckaroo_generate_digital_sign(self, acquirer, inout, values):
+    def _voguepay_generate_digital_sign(self, acquirer, inout, values):
         """ Generate the shasign for incoming or outgoing communications.
 
         :param browse acquirer: the payment.acquirer browse record. It should
                                 have a shakey in shaky out
-        :param string inout: 'in' (openerp contacting buckaroo) or 'out' (buckaroo
+        :param string inout: 'in' (openerp contacting voguepay) or 'out' (voguepay
                              contacting openerp).
         :param dict values: transaction values
 
         :return string: shasign
         """
         assert inout in ('in', 'out')
-        assert acquirer.provider == 'buckaroo'
+        assert acquirer.provider == 'voguepay'
 
         keys = "add_returndata Brq_amount Brq_culture Brq_currency Brq_invoicenumber Brq_return Brq_returncancel Brq_returnerror Brq_returnreject brq_test Brq_websitekey".split()
 
@@ -77,45 +77,45 @@ class AcquirerBuckaroo(osv.Model):
         return shasign
 
 
-    def buckaroo_form_generate_values(self, cr, uid, id, partner_values, tx_values, context=None):
+    def voguepay_form_generate_values(self, cr, uid, id, partner_values, tx_values, context=None):
         base_url = self.pool['ir.config_parameter'].get_param(cr, uid, 'web.base.url')
         acquirer = self.browse(cr, uid, id, context=context)
-        buckaroo_tx_values = dict(tx_values)
-        buckaroo_tx_values.update({
+        voguepay_tx_values = dict(tx_values)
+        voguepay_tx_values.update({
             'Brq_websitekey': acquirer.brq_websitekey,
             'Brq_amount': tx_values['amount'],
             'Brq_currency': tx_values['currency'] and tx_values['currency'].name or '',
             'Brq_invoicenumber': tx_values['reference'],
             'brq_test': False if acquirer.environment == 'prod' else True,
-            'Brq_return': '%s' % urlparse.urljoin(base_url, BuckarooController._return_url),
-            'Brq_returncancel': '%s' % urlparse.urljoin(base_url, BuckarooController._cancel_url),
-            'Brq_returnerror': '%s' % urlparse.urljoin(base_url, BuckarooController._exception_url),
-            'Brq_returnreject': '%s' % urlparse.urljoin(base_url, BuckarooController._reject_url),
+            'Brq_return': '%s' % urlparse.urljoin(base_url, VoguePayController._return_url),
+            'Brq_returncancel': '%s' % urlparse.urljoin(base_url, VoguePayController._cancel_url),
+            'Brq_returnerror': '%s' % urlparse.urljoin(base_url, VoguePayController._exception_url),
+            'Brq_returnreject': '%s' % urlparse.urljoin(base_url, VoguePayController._reject_url),
             'Brq_culture': (partner_values.get('lang') or 'en_US').replace('_', '-'),
         })
-        if buckaroo_tx_values.get('return_url'):
-            buckaroo_tx_values['add_returndata'] = {'return_url': '%s' % buckaroo_tx_values.pop('return_url')}
+        if voguepay_tx_values.get('return_url'):
+            voguepay_tx_values['add_returndata'] = {'return_url': '%s' % voguepay_tx_values.pop('return_url')}
         else: 
-            buckaroo_tx_values['add_returndata'] = ''
-        buckaroo_tx_values['Brq_signature'] = self._buckaroo_generate_digital_sign(acquirer, 'in', buckaroo_tx_values)
-        return partner_values, buckaroo_tx_values
+            voguepay_tx_values['add_returndata'] = ''
+        voguepay_tx_values['Brq_signature'] = self._voguepay_generate_digital_sign(acquirer, 'in', voguepay_tx_values)
+        return partner_values, voguepay_tx_values
 
-    def buckaroo_get_form_action_url(self, cr, uid, id, context=None):
+    def voguepay_get_form_action_url(self, cr, uid, id, context=None):
         acquirer = self.browse(cr, uid, id, context=context)
-        return self._get_buckaroo_urls(cr, uid, acquirer.environment, context=context)['buckaroo_form_url']
+        return self._get_voguepay_urls(cr, uid, acquirer.environment, context=context)['voguepay_form_url']
 
-class TxBuckaroo(osv.Model):
+class TxVoguePay(osv.Model):
     _inherit = 'payment.transaction'
 
-    # buckaroo status
-    _buckaroo_valid_tx_status = ['Approved']
-    _buckaroo_pending_tx_status = ['Pending']
-    _buckaroo_cancel_tx_status = ['Disputed']
-    _buckaroo_error_tx_status = ['Failed']
-    _buckaroo_reject_tx_status = ['Disputed']
+    # voguepay status
+    _voguepay_valid_tx_status = ['Approved']
+    _voguepay_pending_tx_status = ['Pending']
+    _voguepay_cancel_tx_status = ['Disputed']
+    _voguepay_error_tx_status = ['Failed']
+    _voguepay_reject_tx_status = ['Disputed']
 
     _columns = {
-         'buckaroo_txnid': fields.char('Transaction ID'),
+         'voguepay_txnid': fields.char('Transaction ID'),
     }
     
 
@@ -123,8 +123,8 @@ class TxBuckaroo(osv.Model):
     # FORM RELATED METHODS
     # --------------------------------------------------
 
-    def _buckaroo_form_get_tx_from_data(self, cr, uid, data, context=None):
-        """ Given a data dict coming from buckaroo, verify it and find the related
+    def _voguepay_form_get_tx_from_data(self, cr, uid, data, context=None):
+        """ Given a data dict coming from voguepay, verify it and find the related
         transaction record. """
         #Use transaction_id to pull in more info from VoguePay
         transaction_id = data.get('transaction_id')
@@ -137,13 +137,13 @@ class TxBuckaroo(osv.Model):
         
         if not reference or not pay_id or not shasign:
             #        if not reference:
-            error_msg = 'Buckaroo: received data with missing reference (%s) or pay_id (%s) or shashign (%s)' % (reference, pay_id, shasign)
+            error_msg = 'VoguePay: received data with missing reference (%s) or pay_id (%s) or shashign (%s)' % (reference, pay_id, shasign)
             _logger.error(error_msg)
             raise ValidationError(error_msg)
 #
         tx_ids = self.search(cr, uid, [('reference', '=', reference)], context=context)
         if not pay_id:
-            error_msg = 'Buckaroo: received data for reference %s' % (reference)
+            error_msg = 'VoguePay: received data for reference %s' % (reference)
             if not tx_ids:
                 error_msg += '; no order found'
             else:
@@ -153,15 +153,15 @@ class TxBuckaroo(osv.Model):
         tx = self.pool['payment.transaction'].browse(cr, uid, tx_ids[0], context=context)
 
         #verify shasign
-#        shasign_check = self.pool['payment.acquirer']._buckaroo_generate_digital_sign(tx.acquirer_id, 'out' ,data)
+#        shasign_check = self.pool['payment.acquirer']._voguepay_generate_digital_sign(tx.acquirer_id, 'out' ,data)
 #        if shasign_check.upper() != shasign.upper():
-#            error_msg = 'Buckaroo: invalid shasign, received %s, computed %s, for data %s' % (shasign, shasign_check, data)
+#            error_msg = 'VoguePay: invalid shasign, received %s, computed %s, for data %s' % (shasign, shasign_check, data)
 #            _logger.error(error_msg)
 #            raise ValidationError(error_msg)
 
         return tx
 
-    def _buckaroo_form_get_invalid_parameters(self, cr, uid, tx, data, context=None):
+    def _voguepay_form_get_invalid_parameters(self, cr, uid, tx, data, context=None):
         invalid_parameters = []
 
         if tx.acquirer_reference and data.get('transaction_id') != tx.acquirer_reference:
@@ -182,7 +182,7 @@ class TxBuckaroo(osv.Model):
 
         return invalid_parameters
 
-    def _buckaroo_form_validate(self, cr, uid, tx, data, context=None):
+    def _voguepay_form_validate(self, cr, uid, tx, data, context=None):
         
         #Use transaction_id to pull in more info from VoguePay
         transaction_id = data.get('transaction_id')
@@ -192,34 +192,34 @@ class TxBuckaroo(osv.Model):
         
         #Pull out the confirmations from the transaction_id
         status_code = myTx['status']
-        if status_code in self._buckaroo_valid_tx_status:
+        if status_code in self._voguepay_valid_tx_status:
             #        if data.get('transaction_id'):
             # Adding more detail to the final form
             _logger.info('Validated Paypal payment for tx %s: set as done' % (myTx['memo']))
             tx.write({
                 'state': 'done',
-                'buckaroo_txnid': data.get('transaction_id'),
+                'voguepay_txnid': data.get('transaction_id'),
                 'date_validate': myTx['date'],
             })
             return True
-        elif status_code in self._buckaroo_pending_tx_status:
+        elif status_code in self._voguepay_pending_tx_status:
             tx.write({
                 'state': 'pending',
-                'buckaroo_txnid': data.get('transaction_id'),
+                'voguepay_txnid': data.get('transaction_id'),
             })
             return True
-        elif status_code in self._buckaroo_cancel_tx_status:
+        elif status_code in self._voguepay_cancel_tx_status:
             tx.write({
                 'state': 'cancel',
-                'buckaroo_txnid': data.get('transaction_id'),
+                'voguepay_txnid': data.get('transaction_id'),
             })
             return True
         else:
-            error = 'Buckaroo: feedback error'
+            error = 'VoguePay: feedback error'
             _logger.info(error)
             tx.write({
                 'state': 'error',
                 'state_message': error,
-                'buckaroo_txnid': data.get('transaction_id'),
+                'voguepay_txnid': data.get('transaction_id'),
             })
             return False

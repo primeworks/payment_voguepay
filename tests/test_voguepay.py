@@ -6,32 +6,32 @@ import urlparse
 import openerp
 from openerp.addons.payment.models.payment_acquirer import ValidationError
 from openerp.addons.payment.tests.common import PaymentAcquirerCommon
-from openerp.addons.payment_buckaroo.controllers.main import BuckarooController
+from openerp.addons.payment_voguepay.controllers.main import VoguePayController
 from openerp.tools import mute_logger
 
 
 @openerp.tests.common.at_install(False)
 @openerp.tests.common.post_install(False)
-class BuckarooCommon(PaymentAcquirerCommon):
+class VoguePayCommon(PaymentAcquirerCommon):
 
     def setUp(self):
-        super(BuckarooCommon, self).setUp()
+        super(VoguePayCommon, self).setUp()
         cr, uid = self.cr, self.uid
         self.base_url = self.registry('ir.config_parameter').get_param(cr, uid, 'web.base.url')
 
-        # get the buckaroo account
-        model, self.buckaroo_id = self.registry('ir.model.data').get_object_reference(cr, uid, 'payment_buckaroo', 'payment_acquirer_buckaroo')
+        # get the voguepay account
+        model, self.voguepay_id = self.registry('ir.model.data').get_object_reference(cr, uid, 'payment_voguepay', 'payment_acquirer_voguepay')
 
 
 @openerp.tests.common.at_install(False)
 @openerp.tests.common.post_install(False)
-class BuckarooForm(BuckarooCommon):
+class VoguePayForm(VoguePayCommon):
 
-    def test_10_Buckaroo_form_render(self):
+    def test_10_VoguePay_form_render(self):
         cr, uid, context = self.cr, self.uid, {}
         # be sure not to do stupid things
-        buckaroo = self.payment_acquirer.browse(self.cr, self.uid, self.buckaroo_id, None)
-        self.assertEqual(buckaroo.environment, 'test', 'test without test environment')
+        voguepay = self.payment_acquirer.browse(self.cr, self.uid, self.voguepay_id, None)
+        self.assertEqual(voguepay.environment, 'test', 'test without test environment')
 
         # ----------------------------------------
         # Test: button direct rendering
@@ -39,22 +39,22 @@ class BuckarooForm(BuckarooCommon):
 
         form_values = {
             'add_returndata': None,
-            'Brq_websitekey': buckaroo.brq_websitekey,
+            'Brq_websitekey': voguepay.brq_websitekey,
             'Brq_amount': '2240.0',
             'Brq_currency': 'EUR',
             'Brq_invoicenumber': 'SO004',
             'Brq_signature': '1b8c10074c622d965272a91a9e88b5b3777d2474',  # update me
             'brq_test': 'True',
-            'Brq_return': '%s' % urlparse.urljoin(self.base_url, BuckarooController._return_url),
-            'Brq_returncancel': '%s' % urlparse.urljoin(self.base_url, BuckarooController._cancel_url),
-            'Brq_returnerror': '%s' % urlparse.urljoin(self.base_url, BuckarooController._exception_url),
-            'Brq_returnreject': '%s' % urlparse.urljoin(self.base_url, BuckarooController._reject_url),
+            'Brq_return': '%s' % urlparse.urljoin(self.base_url, VoguePayController._return_url),
+            'Brq_returncancel': '%s' % urlparse.urljoin(self.base_url, VoguePayController._cancel_url),
+            'Brq_returnerror': '%s' % urlparse.urljoin(self.base_url, VoguePayController._exception_url),
+            'Brq_returnreject': '%s' % urlparse.urljoin(self.base_url, VoguePayController._reject_url),
             'Brq_culture': 'en-US',
         }
 
         # render the button
         res = self.payment_acquirer.render(
-            cr, uid, self.buckaroo_id,
+            cr, uid, self.voguepay_id,
             'SO004', 2240.0, self.currency_euro_id,
             partner_id=None,
             partner_values=self.buyer_values,
@@ -62,14 +62,14 @@ class BuckarooForm(BuckarooCommon):
 
         # check form result
         tree = objectify.fromstring(res)
-        self.assertEqual(tree.get('action'), 'https://voguepay.com/pay/', 'Buckaroo: wrong form POST url')
+        self.assertEqual(tree.get('action'), 'https://voguepay.com/pay/', 'VoguePay: wrong form POST url')
         for form_input in tree.input:
             if form_input.get('name') in ['submit']:
                 continue
             self.assertEqual(
                 form_input.get('value'),
                 form_values[form_input.get('name')],
-                'Buckaroo: wrong value for input %s: received %s instead of %s' % (form_input.get('name'), form_input.get('value'), form_values[form_input.get('name')])
+                'VoguePay: wrong value for input %s: received %s instead of %s' % (form_input.get('name'), form_input.get('value'), form_values[form_input.get('name')])
             )
 
         # ----------------------------------------
@@ -80,7 +80,7 @@ class BuckarooForm(BuckarooCommon):
         tx_id = self.payment_transaction.create(
             cr, uid, {
                 'amount': 2240.0,
-                'acquirer_id': self.buckaroo_id,
+                'acquirer_id': self.voguepay_id,
                 'currency_id': self.currency_euro_id,
                 'reference': 'SO004',
                 'partner_id': self.buyer_id,
@@ -89,7 +89,7 @@ class BuckarooForm(BuckarooCommon):
 
         # render the button
         res = self.payment_acquirer.render(
-            cr, uid, self.buckaroo_id,
+            cr, uid, self.voguepay_id,
             'should_be_erased', 2240.0, self.currency_euro,
             tx_id=tx_id,
             partner_id=None,
@@ -98,25 +98,25 @@ class BuckarooForm(BuckarooCommon):
 
         # check form result
         tree = objectify.fromstring(res)
-        self.assertEqual(tree.get('action'), 'https://voguepay.com/pay/', 'Buckaroo: wrong form POST url')
+        self.assertEqual(tree.get('action'), 'https://voguepay.com/pay/', 'VoguePay: wrong form POST url')
         for form_input in tree.input:
             if form_input.get('name') in ['submit']:
                 continue
             self.assertEqual(
                 form_input.get('value'),
                 form_values[form_input.get('name')],
-                'Buckaroo: wrong value for form input %s: received %s instead of %s' % (form_input.get('name'), form_input.get('value'), form_values[form_input.get('name')])
+                'VoguePay: wrong value for form input %s: received %s instead of %s' % (form_input.get('name'), form_input.get('value'), form_values[form_input.get('name')])
             )
 
-    @mute_logger('openerp.addons.payment_buckaroo.models.buckaroo', 'ValidationError')
-    def test_20_buckaroo_form_management(self):
+    @mute_logger('openerp.addons.payment_voguepay.models.voguepay', 'ValidationError')
+    def test_20_voguepay_form_management(self):
         cr, uid, context = self.cr, self.uid, {}
         # be sure not to do stupid thing
-        buckaroo = self.payment_acquirer.browse(self.cr, self.uid, self.buckaroo_id, None)
-        self.assertEqual(buckaroo.environment, 'test', 'test without test environment')
+        voguepay = self.payment_acquirer.browse(self.cr, self.uid, self.voguepay_id, None)
+        self.assertEqual(voguepay.environment, 'test', 'test without test environment')
 
-        # typical data posted by buckaroo after client has successfully paid
-        buckaroo_post_data = {
+        # typical data posted by voguepay after client has successfully paid
+        voguepay_post_data = {
             'BRQ_RETURNDATA': u'',
             'BRQ_AMOUNT': u'2240.00',
             'BRQ_CURRENCY': u'EUR',
@@ -142,12 +142,12 @@ class BuckarooForm(BuckarooCommon):
 
         # should raise error about unknown tx
         with self.assertRaises(ValidationError):
-            self.payment_transaction.form_feedback(cr, uid, buckaroo_post_data, 'buckaroo', context=context)
+            self.payment_transaction.form_feedback(cr, uid, voguepay_post_data, 'voguepay', context=context)
 
         tx_id = self.payment_transaction.create(
             cr, uid, {
                 'amount': 2240.0,
-                'acquirer_id': self.buckaroo_id,
+                'acquirer_id': self.voguepay_id,
                 'currency_id': self.currency_euro_id,
                 'reference': 'SO004',
                 'partner_name': 'Norbert Buyer',
@@ -155,24 +155,24 @@ class BuckarooForm(BuckarooCommon):
             }, context=context
         )
         # validate it
-        self.payment_transaction.form_feedback(cr, uid, buckaroo_post_data, 'buckaroo', context=context)
+        self.payment_transaction.form_feedback(cr, uid, voguepay_post_data, 'voguepay', context=context)
         # check state
         tx = self.payment_transaction.browse(cr, uid, tx_id, context=context)
-        self.assertEqual(tx.state, 'done', 'Buckaroo: validation did not put tx into done state')
-        self.assertEqual(tx.buckaroo_txnid, buckaroo_post_data.get('BRQ_TRANSACTIONS'), 'Buckaroo: validation did not update tx payid')
+        self.assertEqual(tx.state, 'done', 'VoguePay: validation did not put tx into done state')
+        self.assertEqual(tx.voguepay_txnid, voguepay_post_data.get('BRQ_TRANSACTIONS'), 'VoguePay: validation did not update tx payid')
 
         # reset tx
-        tx.write({'state': 'draft', 'date_validate': False, 'buckaroo_txnid': False})
+        tx.write({'state': 'draft', 'date_validate': False, 'voguepay_txnid': False})
 
-        # now buckaroo post is ok: try to modify the SHASIGN
-        buckaroo_post_data['BRQ_SIGNATURE'] = '54d928810e343acf5fb0c3ee75fd747ff159ef7a'
+        # now voguepay post is ok: try to modify the SHASIGN
+        voguepay_post_data['BRQ_SIGNATURE'] = '54d928810e343acf5fb0c3ee75fd747ff159ef7a'
         with self.assertRaises(ValidationError):
-            self.payment_transaction.form_feedback(cr, uid, buckaroo_post_data, 'buckaroo', context=context)
+            self.payment_transaction.form_feedback(cr, uid, voguepay_post_data, 'voguepay', context=context)
 
         # simulate an error
-        buckaroo_post_data['BRQ_STATUSCODE'] = 2
-        buckaroo_post_data['BRQ_SIGNATURE'] = '4164b52adb1e6a2221d3d8a39d8c3e18a9ecb90b'
-        self.payment_transaction.form_feedback(cr, uid, buckaroo_post_data, 'buckaroo', context=context)
+        voguepay_post_data['BRQ_STATUSCODE'] = 2
+        voguepay_post_data['BRQ_SIGNATURE'] = '4164b52adb1e6a2221d3d8a39d8c3e18a9ecb90b'
+        self.payment_transaction.form_feedback(cr, uid, voguepay_post_data, 'voguepay', context=context)
         # check state
         tx = self.payment_transaction.browse(cr, uid, tx_id, context=context)
-        self.assertEqual(tx.state, 'error', 'Buckaroo: erroneous validation did not put tx into error state')
+        self.assertEqual(tx.state, 'error', 'VoguePay: erroneous validation did not put tx into error state')

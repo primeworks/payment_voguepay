@@ -1,6 +1,6 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# * payment_buckaroo
+# * payment_voguepay
 # 
 # Translators:
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2014
@@ -18,39 +18,39 @@ msgstr ""
 "Language: mk\n"
 "Plural-Forms: nplurals=2; plural=(n % 10 == 1 && n % 100 != 11) ? 0 : 1;\n"
 
-#. module: payment_buckaroo
-#: model:payment.acquirer,pre_msg:payment_buckaroo.payment_acquirer_buckaroo
+#. module: payment_voguepay
+#: model:payment.acquirer,pre_msg:payment_voguepay.payment_acquirer_voguepay
 msgid ""
-"<p>You will be redirected to the Buckaroo website after clicking on the "
+"<p>You will be redirected to the VoguePay website after clicking on the "
 "payment button.</p>"
 msgstr ""
 
-#. module: payment_buckaroo
-#: view:payment.transaction:payment_buckaroo.transaction_form_buckaroo
-msgid "Buckaroo TX Details"
-msgstr "Buckaroo TX Details"
+#. module: payment_voguepay
+#: view:payment.transaction:payment_voguepay.transaction_form_voguepay
+msgid "VoguePay TX Details"
+msgstr "VoguePay TX Details"
 
-#. module: payment_buckaroo
-#: model:ir.model,name:payment_buckaroo.model_payment_acquirer
+#. module: payment_voguepay
+#: model:ir.model,name:payment_voguepay.model_payment_acquirer
 msgid "Payment Acquirer"
 msgstr "Стекнувач на плаќање"
 
-#. module: payment_buckaroo
-#: model:ir.model,name:payment_buckaroo.model_payment_transaction
+#. module: payment_voguepay
+#: model:ir.model,name:payment_voguepay.model_payment_transaction
 msgid "Payment Transaction"
 msgstr "Payment Transaction"
 
-#. module: payment_buckaroo
+#. module: payment_voguepay
 #: field:payment.acquirer,brq_secretkey:0
 msgid "SecretKey"
 msgstr "SecretKey"
 
-#. module: payment_buckaroo
-#: field:payment.transaction,buckaroo_txnid:0
+#. module: payment_voguepay
+#: field:payment.transaction,voguepay_txnid:0
 msgid "Transaction ID"
 msgstr "Transaction ID"
 
-#. module: payment_buckaroo
+#. module: payment_voguepay
 #: field:payment.acquirer,brq_websitekey:0
 msgid "WebsiteKey"
 msgstr "WebsiteKey"

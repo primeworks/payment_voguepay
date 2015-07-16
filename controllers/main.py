@@ -14,22 +14,22 @@ from openerp.http import request
 _logger = logging.getLogger(__name__)
 
 
-class BuckarooController(http.Controller):
-    _return_url = '/payment/buckaroo/return'
-    _cancel_url = '/payment/buckaroo/cancel'
-    _exception_url = '/payment/buckaroo/error'
-    _reject_url = '/payment/buckaroo/reject'
+class VoguePayController(http.Controller):
+    _return_url = '/payment/voguepay/return'
+    _cancel_url = '/payment/voguepay/cancel'
+    _exception_url = '/payment/voguepay/error'
+    _reject_url = '/payment/voguepay/reject'
 
     @http.route([
-        '/payment/buckaroo/return',
-        '/payment/buckaroo/cancel',
-        '/payment/buckaroo/error',
-        '/payment/buckaroo/reject',
+        '/payment/voguepay/return',
+        '/payment/voguepay/cancel',
+        '/payment/voguepay/error',
+        '/payment/voguepay/reject',
     ], type='http', auth='none')
-    def buckaroo_return(self, **post):
-        """ Buckaroo."""
-        _logger.info('Buckaroo: entering form_feedback with post data %s', pprint.pformat(post))  # debug
-        request.registry['payment.transaction'].form_feedback(request.cr, SUPERUSER_ID, post, 'buckaroo', context=request.context)
+    def voguepay_return(self, **post):
+        """ VoguePay."""
+        _logger.info('VoguePay: entering form_feedback with post data %s', pprint.pformat(post))  # debug
+        request.registry['payment.transaction'].form_feedback(request.cr, SUPERUSER_ID, post, 'voguepay', context=request.context)
         return_url = post.pop('return_url', '')
         if not return_url:
             data ='' + post.pop('ADD_RETURNDATA', '{}').replace("'", "\"")
