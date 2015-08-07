@@ -10,7 +10,7 @@
             <field name="environment">test</field>
             <field name="pre_msg"><![CDATA[
 <p>You will be redirected to the VoguePay website after clicking on the payment button.</p>]]></field>
-            <field name="brq_websitekey">demo</field>
+            <field name="brq_websitekey">1450-16357</field>
             <field name="brq_secretkey">vkPwKyVDUfCM8DySAdg6yFLkhNqftUwU4SkTBv8dXqmWD</field>
         </record>
 
